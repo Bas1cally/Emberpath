@@ -48,6 +48,12 @@ namespace Emberpath.Player
         public bool IsDashing { get; private set; }
         public int FacingDirection { get; private set; } = 1;
 
+        /// <summary>True while the feet are on the ground. For animation/state code.</summary>
+        public bool IsGrounded => _isGrounded;
+
+        /// <summary>Current rigidbody velocity (zero before Awake). For animation/state code.</summary>
+        public Vector2 Velocity => _rb != null ? _rb.linearVelocity : Vector2.zero;
+
         /// <summary>
         /// Wires up references that are normally assigned in the inspector.
         /// Used by <c>TestArenaBootstrap</c> when it builds the player at runtime.

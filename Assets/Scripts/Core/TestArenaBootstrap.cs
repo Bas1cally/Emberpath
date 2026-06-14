@@ -36,6 +36,10 @@ namespace Emberpath.Core
         [Tooltip("Tiled across each platform. Set its Mesh Type to 'Full Rect' to avoid a warning.")]
         [SerializeField] private Sprite groundSprite;
 
+        [Header("Player Animations (optional — drop frame sequences per state)")]
+        [Tooltip("If any list has frames, the player plays animations driven by its state.")]
+        [SerializeField] private PlayerAnimationSet playerAnimations = new PlayerAnimationSet();
+
         private static readonly Color PlayerColor = new Color(0.95f, 0.55f, 0.20f); // ember orange
         private static readonly Color EnemyColor = new Color(0.65f, 0.20f, 0.25f);
         private static readonly Color GroundColor = new Color(0.20f, 0.22f, 0.28f);
@@ -129,8 +133,9 @@ namespace Emberpath.Core
         /// collider so custom art keeps its own proportions. Falls back to a tinted
         /// placeholder square sized to the collider when no sprite is supplied.
         /// </summary>
-        private static SpriteRenderer CreateVisual(GameObject parent, Sprite sprite, Color placeholderColor,
-                                                   Vector2 placeholderSize, Vector2 customScale, int sortingOrder)
+        private static SpriteRenderer CreateVisual(GameObject parent, Sprite sprite, bool customLook,
+                                                   Color placeholderColor, Vector2 placeholderSize,
+                                                   Vector2 customScale, int sortingOrder)
         {
             var visual = new GameObject("Visual");
             visual.transform.SetParent(parent.transform, false);
@@ -138,9 +143,9 @@ namespace Emberpath.Core
             var sr = visual.AddComponent<SpriteRenderer>();
             sr.sortingOrder = sortingOrder;
 
-            if (sprite != null)
+            if (customLook)
             {
-                sr.sprite = sprite;
+                sr.sprite = sprite; // may be null; an animator will set frames each update
                 visual.transform.localScale = new Vector3(customScale.x, customScale.y, 1f);
             }
             else
@@ -172,7 +177,12 @@ namespace Emberpath.Core
             col.size = new Vector2(0.7f, 1.4f);
             col.direction = CapsuleDirection2D.Vertical;
 
-            CreateVisual(go, playerSprite, PlayerColor, new Vector2(0.7f, 1.4f), playerVisualScale, 10);
+            bool customArt = playerSprite != null || playerAnimations.AnyAssigned;
+            Sprite initialSprite = playerSprite != null
+                ? playerSprite
+                : (playerAnimations.idle.HasFrames ? playerAnimations.idle.frames[0] : null);
+            SpriteRenderer visualSr = CreateVisual(go, initialSprite, customArt, PlayerColor,
+                                                   new Vector2(0.7f, 1.4f), playerVisualScale, 10);
 
             // Ground check point just below the player's feet (collider half-height 0.7).
             var groundCheck = new GameObject("GroundCheck").transform;
@@ -185,6 +195,12 @@ namespace Emberpath.Core
 
             var combat = go.AddComponent<PlayerCombat>();
             combat.ApplyTuning(playerTuning);
+
+            if (playerAnimations.AnyAssigned)
+            {
+                var animator = visualSr.gameObject.AddComponent<PlayerSpriteAnimator>();
+                animator.Configure(playerAnimations, controller, combat);
+            }
 
             go.SetActive(true);
             return go;
@@ -204,7 +220,7 @@ namespace Emberpath.Core
             var col = go.AddComponent<BoxCollider2D>();
             col.size = new Vector2(1f, 1.4f);
 
-            CreateVisual(go, enemySprite, EnemyColor, new Vector2(1f, 1.4f), enemyVisualScale, 5);
+            CreateVisual(go, enemySprite, enemySprite != null, EnemyColor, new Vector2(1f, 1.4f), enemyVisualScale, 5);
 
             go.AddComponent<DummyEnemy>();
             return go;

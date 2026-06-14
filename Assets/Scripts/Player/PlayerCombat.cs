@@ -29,6 +29,9 @@ namespace Emberpath.Player
         [Tooltip("How long the debug hitbox gizmo stays visible after an attack.")]
         [SerializeField] private float gizmoFlashTime = 0.1f;
 
+        /// <summary>Raised when an attack swing starts, for animation/FX hooks.</summary>
+        public event System.Action Attacked;
+
         private PlayerController _controller;
         private float _cooldownLeft;
         private float _gizmoTimer;
@@ -71,6 +74,7 @@ namespace Emberpath.Player
             _cooldownLeft = attackCooldown;
             _gizmoTimer = gizmoFlashTime;
             _hitThisSwing.Clear();
+            Attacked?.Invoke();
 
             Vector2 center = GetHitboxCenter();
             SpawnSlashVisual(center);
