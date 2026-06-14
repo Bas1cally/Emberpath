@@ -5,6 +5,11 @@ name: Acquire Unity activation file
 
 on:
   workflow_dispatch:
+  # Also runs automatically whenever this file changes, so the .alf can be
+  # generated without the workflow being present on the default branch.
+  push:
+    paths:
+      - ".github/workflows/activation.yml"
 
 jobs:
   activation:
