@@ -84,6 +84,10 @@ namespace Emberpath.Player
 
         private float _coyoteCounter;
         private float _jumpBufferCounter;
+        private float _jumpLockTimer;
+        // After a jump, ignore ground for this long so the still-overlapping foot
+        // check can't immediately re-ground and hand out a second jump.
+        private const float JumpLockTime = 0.08f;
 
         private float _dashTimeLeft;
         private float _dashCooldownLeft;
@@ -155,6 +159,7 @@ namespace Emberpath.Player
         {
             _coyoteCounter -= Time.deltaTime;
             _jumpBufferCounter -= Time.deltaTime;
+            _jumpLockTimer -= Time.deltaTime;
             _dashCooldownLeft -= Time.deltaTime;
         }
 
@@ -178,6 +183,10 @@ namespace Emberpath.Player
             // "grounded" forever, which allows infinite jumps. This also keeps working
             // if the ground LayerMask is misconfigured (e.g. the Ground layer is missing).
             _isGrounded = false;
+
+            // Don't re-ground during the brief post-jump lock.
+            if (_jumpLockTimer > 0f) return;
+
             Collider2D[] hits = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius, groundLayer);
             foreach (Collider2D c in hits)
             {
@@ -220,6 +229,7 @@ namespace Emberpath.Player
 
             _jumpBufferCounter = 0f;
             _coyoteCounter = 0f;
+            _jumpLockTimer = JumpLockTime;
         }
 
         private void ApplyBetterGravity()
