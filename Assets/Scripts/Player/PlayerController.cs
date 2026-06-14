@@ -22,8 +22,9 @@ namespace Emberpath.Player
 
         [Header("Jump")]
         [SerializeField] private float jumpForce = 15f;
-        [Tooltip("Extra jumps allowed after the grounded jump. 1 = double jump.")]
-        [SerializeField] private int extraJumps = 1;
+        [Tooltip("Extra mid-air jumps after the grounded jump. 0 = single jump only; " +
+                 "set to 1 later to unlock the double jump.")]
+        [SerializeField] private int extraJumps = 0;
         [Tooltip("Upward velocity is cut by this factor when the jump button is released early.")]
         [Range(0f, 1f)]
         [SerializeField] private float jumpCutMultiplier = 0.5f;

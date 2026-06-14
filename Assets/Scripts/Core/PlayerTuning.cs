@@ -17,8 +17,9 @@ namespace Emberpath.Core
 
         [Header("Jump")]
         public float jumpForce = 15f;
-        [Tooltip("Extra mid-air jumps. 1 = double jump.")]
-        public int extraJumps = 1;
+        [Tooltip("Extra mid-air jumps. 0 = single jump only (default for now); " +
+                 "set to 1 to unlock the double jump.")]
+        public int extraJumps = 0;
         [Tooltip("Higher = snappier, less floaty fall.")]
         public float fallGravityMultiplier = 2.0f;
 
