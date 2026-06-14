@@ -4,6 +4,10 @@ The CI (`/.github/workflows/ci.yml`) compiles the project and runs the EditMode
 tests on every push using [game-ci](https://game.ci). It needs a Unity license.
 For **Unity Personal** this is a one-time activation:
 
+> **Have Unity installed locally? Skip the GitHub workflow.** You can create the
+> activation file (`.alf`) directly with your local editor — see
+> *"Alternative: create the activation file locally"* below — then jump to step 2.
+
 ## 1. Get the activation file (.alf)
 
 1. In GitHub, open the **Actions** tab.
@@ -33,6 +37,40 @@ In **Settings ▸ Secrets and variables ▸ Actions ▸ New repository secret**,
 Push any commit (or re-run the **CI** workflow). The job will activate the
 license, compile the project and run the EditMode smoke test. A green check means
 all scripts compiled cleanly.
+
+---
+
+## Alternative: create the activation file locally
+
+If Unity is already installed, you don't need the GitHub activation workflow at
+all. Run the editor once in batch mode to produce the `.alf`, then continue at
+**step 2** above.
+
+Find your editor path in **Unity Hub ▸ Installs** (gear icon ▸ *Show in
+Explorer/Finder*), then:
+
+**macOS**
+```bash
+cd ~/Desktop
+"/Applications/Unity/Hub/Editor/<VERSION>/Unity.app/Contents/MacOS/Unity" \
+  -batchmode -nographics -createManualActivationFile -logFile -
+```
+
+**Windows (PowerShell)**
+```powershell
+cd $HOME\Desktop
+& "C:\Program Files\Unity\Hub\Editor\<VERSION>\Editor\Unity.exe" `
+  -batchmode -nographics -createManualActivationFile -logFile -
+```
+
+Replace `<VERSION>` with your installed editor (e.g. `6000.0.32f1`). A file like
+`Unity_v6000.0.x.alf` is written to the current folder (here: the Desktop). Any
+installed Unity version works — the resulting Personal `.ulf` is not tied to a
+specific version. Then continue with **step 2** (convert) and **step 3**
+(secrets).
+
+The CI runs on every branch, so once the secrets exist you don't need to merge
+anything — just re-run the failed **CI** run or push a new commit.
 
 ---
 
