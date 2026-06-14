@@ -173,18 +173,25 @@ namespace Emberpath.Player
 
         private void CheckGrounded()
         {
-            bool wasGrounded = _isGrounded;
-            _isGrounded = Physics2D.OverlapCircle(groundCheck.position, groundCheckRadius, groundLayer);
+            // Detect ground but never count our own body/children as ground — otherwise
+            // the foot-level check overlaps the player's own collider and reports
+            // "grounded" forever, which allows infinite jumps. This also keeps working
+            // if the ground LayerMask is misconfigured (e.g. the Ground layer is missing).
+            _isGrounded = false;
+            Collider2D[] hits = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius, groundLayer);
+            foreach (Collider2D c in hits)
+            {
+                if (c == null) continue;
+                if (c.attachedRigidbody == _rb) continue;       // our own rigidbody
+                if (c.transform.IsChildOf(transform)) continue; // our own children
+                _isGrounded = true;
+                break;
+            }
 
             if (_isGrounded)
             {
                 _coyoteCounter = coyoteTime;
                 _jumpsRemaining = extraJumps;
-
-                if (!wasGrounded)
-                {
-                    // Just landed.
-                }
             }
         }
 
