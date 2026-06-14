@@ -73,6 +73,7 @@ namespace Emberpath.Player
             _hitThisSwing.Clear();
 
             Vector2 center = GetHitboxCenter();
+            SpawnSlashVisual(center);
             Collider2D[] hits = Physics2D.OverlapBoxAll(center, hitboxSize, 0f, hittableLayers);
 
             bool connected = false;
@@ -105,6 +106,22 @@ namespace Emberpath.Player
             {
                 Hitstop.Freeze(hitstopDuration);
             }
+        }
+
+        private void SpawnSlashVisual(Vector2 center)
+        {
+            // A short-lived coloured square where the swing lands, so an attack is
+            // always visible — even when it misses (placeholder art, no animation).
+            var fx = new GameObject("AttackFX");
+            fx.transform.position = center;
+            fx.transform.localScale = new Vector3(hitboxSize.x, hitboxSize.y, 1f);
+
+            var sr = fx.AddComponent<SpriteRenderer>();
+            sr.sprite = PlaceholderSprites.UnitSquare;
+            sr.color = new Color(1f, 0.85f, 0.3f, 0.6f);
+            sr.sortingOrder = 20;
+
+            Destroy(fx, 0.08f);
         }
 
         private Vector2 GetHitboxCenter()

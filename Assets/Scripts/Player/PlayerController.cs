@@ -74,6 +74,8 @@ namespace Emberpath.Player
 
         private Rigidbody2D _rb;
         private SpriteRenderer _sprite;
+        private Color _baseColor = Color.white;
+        private readonly Color _dashColor = new Color(0.5f, 0.9f, 1f);
         private float _defaultGravityScale;
 
         private float _moveInput;
@@ -91,6 +93,7 @@ namespace Emberpath.Player
         {
             _rb = GetComponent<Rigidbody2D>();
             _sprite = GetComponentInChildren<SpriteRenderer>();
+            if (_sprite != null) _baseColor = _sprite.color;
             _defaultGravityScale = _rb.gravityScale;
             _rb.freezeRotation = true;
 
@@ -228,6 +231,9 @@ namespace Emberpath.Player
             _dashTimeLeft = dashDuration;
             _dashCooldownLeft = dashCooldown;
             _dashDirection = Mathf.Abs(_moveInput) > 0.01f ? Mathf.Sign(_moveInput) : FacingDirection;
+
+            // Visible tint so the dash reads clearly even with placeholder art.
+            if (_sprite != null) _sprite.color = _dashColor;
         }
 
         private void TickDash()
@@ -240,6 +246,7 @@ namespace Emberpath.Player
             {
                 IsDashing = false;
                 _rb.gravityScale = _defaultGravityScale;
+                if (_sprite != null) _sprite.color = _baseColor;
                 // Bleed off the dash so it doesn't fling the player at full speed.
                 _rb.linearVelocity = new Vector2(_rb.linearVelocity.x * 0.5f, _rb.linearVelocity.y);
             }
