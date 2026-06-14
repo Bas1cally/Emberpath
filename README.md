@@ -23,6 +23,12 @@ Full setup notes, controls and architecture: see
 `A`/`D` or arrows to move · `Space`/`W` to jump (double jump in air) ·
 `Shift`/`K` to dash · `J`/Left Mouse to attack.
 
+## Continuous integration
+
+Every push is compiled and EditMode-tested via GitHub Actions (game-ci). To
+enable it, do the one-time Unity Personal license setup in
+[`.github/CI_SETUP.md`](.github/CI_SETUP.md).
+
 ## Project layout
 
 ```
