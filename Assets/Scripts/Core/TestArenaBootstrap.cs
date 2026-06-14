@@ -23,6 +23,10 @@ namespace Emberpath.Core
         [SerializeField] private float cameraOrthoSize = 6.5f;
         [SerializeField] private Color backgroundColor = new Color(0.08f, 0.07f, 0.10f);
 
+        [Header("Player Tuning")]
+        [Tooltip("Tweak these and press Play to feel the change; values are saved with the scene.")]
+        [SerializeField] private PlayerTuning playerTuning = new PlayerTuning();
+
         private static readonly Color PlayerColor = new Color(0.95f, 0.55f, 0.20f); // ember orange
         private static readonly Color EnemyColor = new Color(0.65f, 0.20f, 0.25f);
         private static readonly Color GroundColor = new Color(0.20f, 0.22f, 0.28f);
@@ -131,7 +135,10 @@ namespace Emberpath.Core
 
             var controller = go.AddComponent<PlayerController>();
             controller.ConfigureReferences(groundCheck, 1 << groundLayer);
-            go.AddComponent<PlayerCombat>();
+            controller.ApplyTuning(playerTuning);
+
+            var combat = go.AddComponent<PlayerCombat>();
+            combat.ApplyTuning(playerTuning);
 
             go.SetActive(true);
             return go;
@@ -148,10 +155,11 @@ namespace Emberpath.Core
             sr.sortingOrder = 5;
             go.transform.localScale = new Vector3(1f, 1.4f, 1f);
 
+            // Kinematic: stays solid (blocks the player) but can't be pushed around
+            // by walking into it. Knockback is applied via velocity in DummyEnemy.
             var rb = go.AddComponent<Rigidbody2D>();
-            rb.gravityScale = 0f; // floats in place so feedback is easy to read
+            rb.bodyType = RigidbodyType2D.Kinematic;
             rb.freezeRotation = true;
-            rb.constraints = RigidbodyConstraints2D.FreezePositionY | RigidbodyConstraints2D.FreezeRotation;
 
             var col = go.AddComponent<BoxCollider2D>();
             col.size = Vector2.one;

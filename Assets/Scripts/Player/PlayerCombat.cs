@@ -41,6 +41,16 @@ namespace Emberpath.Player
             _controller = GetComponent<PlayerController>();
         }
 
+        /// <summary>Overrides the combat feel values from a shared tuning object.</summary>
+        public void ApplyTuning(PlayerTuning t)
+        {
+            if (t == null) return;
+            damage = t.damage;
+            attackCooldown = t.attackCooldown;
+            knockbackForce = t.knockbackForce;
+            hitstopDuration = t.hitstopDuration;
+        }
+
         private void Update()
         {
             _cooldownLeft -= Time.deltaTime;

@@ -1,3 +1,4 @@
+using Emberpath.Core;
 using UnityEngine;
 
 namespace Emberpath.Player
@@ -55,6 +56,19 @@ namespace Emberpath.Player
         {
             if (groundCheckTransform != null) groundCheck = groundCheckTransform;
             groundLayer = groundMask;
+        }
+
+        /// <summary>Overrides the movement feel values from a shared tuning object.</summary>
+        public void ApplyTuning(PlayerTuning t)
+        {
+            if (t == null) return;
+            moveSpeed = t.moveSpeed;
+            jumpForce = t.jumpForce;
+            extraJumps = t.extraJumps;
+            fallGravityMultiplier = t.fallGravityMultiplier;
+            dashSpeed = t.dashSpeed;
+            dashDuration = t.dashDuration;
+            dashCooldown = t.dashCooldown;
         }
 
         private Rigidbody2D _rb;

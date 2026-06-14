@@ -80,9 +80,12 @@ namespace Emberpath.Enemy
         {
             if (info.KnockbackForce <= 0f || info.KnockbackDirection == Vector2.zero) return;
 
-            // Replace velocity rather than add to it so repeated hits feel consistent.
-            _rb.linearVelocity = Vector2.zero;
-            _rb.AddForce(info.KnockbackDirection * info.KnockbackForce, ForceMode2D.Impulse);
+            // The dummy is a Kinematic body (so it can't be shoved around just by
+            // walking into it), so knockback is driven by setting velocity directly
+            // rather than AddForce. Horizontal only, so the floating block returns to
+            // rest on its own line.
+            float dir = Mathf.Sign(info.KnockbackDirection.x != 0f ? info.KnockbackDirection.x : 1f);
+            _rb.linearVelocity = new Vector2(dir * info.KnockbackForce, 0f);
         }
 
         private void Flash()

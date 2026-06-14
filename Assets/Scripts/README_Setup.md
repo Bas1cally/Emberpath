@@ -66,12 +66,15 @@ interface.
 
 ## 5. Tuning
 
-Select the spawned **Player** at runtime (or tweak the defaults in
-`PlayerController` / `PlayerCombat`) to adjust feel: `moveSpeed`, `jumpForce`,
-`extraJumps`, `dashSpeed`/`dashDuration`/`dashCooldown`, `coyoteTime`,
-`jumpBufferTime`, and on combat `damage`, `knockbackForce`, `hitboxSize`,
-`hitstopDuration`. `DummyEnemy` exposes `maxHealth`, `flashColor`,
-`knockbackRecovery` and `respawnDelay`.
+The feel values live on the **`[TestArenaBootstrap]`** object in the scene, under
+**Player Tuning**. Select it in the Hierarchy (edit mode), change `jumpForce`,
+`fallGravityMultiplier`, `dashSpeed`/`dashDuration`/`dashCooldown`,
+`knockbackForce`, `hitstopDuration`, etc., then press **Play** to feel it. These
+values are **saved with the scene** (save with `Ctrl/Cmd+S`), so they persist —
+unlike tweaking the spawned Player during Play, which resets on stop.
+
+For values not exposed there, edit the defaults in `PlayerController` /
+`PlayerCombat` / `DummyEnemy` directly.
 
 ## 6. Important notes (read once)
 
