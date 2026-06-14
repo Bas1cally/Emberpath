@@ -10,7 +10,6 @@ namespace Emberpath.Enemy
     /// "dying" so the slice stays testable without restarting the scene.
     /// </summary>
     [RequireComponent(typeof(Rigidbody2D))]
-    [RequireComponent(typeof(SpriteRenderer))]
     public class DummyEnemy : MonoBehaviour, IDamageable
     {
         [Header("Health")]
@@ -38,8 +37,10 @@ namespace Emberpath.Enemy
         private void Awake()
         {
             _rb = GetComponent<Rigidbody2D>();
-            _sprite = GetComponent<SpriteRenderer>();
-            _baseColor = _sprite.color;
+            // The visual may live on a child object (so custom art isn't distorted
+            // by the collider), so search children too.
+            _sprite = GetComponentInChildren<SpriteRenderer>();
+            if (_sprite != null) _baseColor = _sprite.color;
             _health = maxHealth;
         }
 
@@ -90,6 +91,7 @@ namespace Emberpath.Enemy
 
         private void Flash()
         {
+            if (_sprite == null) return;
             if (_flashRoutine != null) StopCoroutine(_flashRoutine);
             _flashRoutine = StartCoroutine(FlashRoutine());
         }
@@ -105,7 +107,8 @@ namespace Emberpath.Enemy
 
         private void Die()
         {
-            _sprite.color = new Color(_baseColor.r, _baseColor.g, _baseColor.b, 0.25f);
+            if (_sprite != null)
+                _sprite.color = new Color(_baseColor.r, _baseColor.g, _baseColor.b, 0.25f);
             _rb.linearVelocity = Vector2.zero;
 
             if (respawnDelay > 0f)
@@ -119,7 +122,7 @@ namespace Emberpath.Enemy
             yield return new WaitForSeconds(respawnDelay);
             _health = maxHealth;
             if (_flashRoutine != null) { StopCoroutine(_flashRoutine); _flashRoutine = null; }
-            _sprite.color = _baseColor;
+            if (_sprite != null) _sprite.color = _baseColor;
         }
     }
 }

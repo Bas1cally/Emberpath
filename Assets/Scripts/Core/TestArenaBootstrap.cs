@@ -27,6 +27,15 @@ namespace Emberpath.Core
         [Tooltip("Tweak these and press Play to feel the change; values are saved with the scene.")]
         [SerializeField] private PlayerTuning playerTuning = new PlayerTuning();
 
+        [Header("Art (optional — drag your own sprites here; empty = placeholder squares)")]
+        [SerializeField] private Sprite playerSprite;
+        [Tooltip("Scale of the player graphic. Tweak so it matches the collider box.")]
+        [SerializeField] private Vector2 playerVisualScale = Vector2.one;
+        [SerializeField] private Sprite enemySprite;
+        [SerializeField] private Vector2 enemyVisualScale = Vector2.one;
+        [Tooltip("Tiled across each platform. Set its Mesh Type to 'Full Rect' to avoid a warning.")]
+        [SerializeField] private Sprite groundSprite;
+
         private static readonly Color PlayerColor = new Color(0.95f, 0.55f, 0.20f); // ember orange
         private static readonly Color EnemyColor = new Color(0.65f, 0.20f, 0.25f);
         private static readonly Color GroundColor = new Color(0.20f, 0.22f, 0.28f);
@@ -48,7 +57,7 @@ namespace Emberpath.Core
             BuildEnemy(new Vector2(-5f, 1.6f));
 
             Debug.Log("[Emberpath] Test arena ready. Controls: A/D or ←/→ move, " +
-                      "Space/W jump (double jump in air), Shift/K dash, J/LMB attack.");
+                      "Space/W jump, Shift/K dash, J/LMB attack.");
 
             // Keep the bootstrap object around but inert; nothing else to do.
             _ = player;
@@ -91,18 +100,57 @@ namespace Emberpath.Core
             var go = new GameObject(name);
             go.layer = layer;
             go.transform.position = position;
-            go.transform.localScale = new Vector3(size.x, size.y, 1f);
 
             var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = PlaceholderSprites.UnitSquare;
-            sr.color = GroundColor;
             sr.sortingOrder = 0;
-
-            // Collider is authored in local 1x1 space and inherits the transform scale.
             var col = go.AddComponent<BoxCollider2D>();
-            col.size = Vector2.one;
+
+            if (groundSprite != null)
+            {
+                // Tile the sprite across the platform so it isn't stretched.
+                sr.sprite = groundSprite;
+                sr.drawMode = SpriteDrawMode.Tiled;
+                sr.size = size;
+                col.size = size;
+            }
+            else
+            {
+                sr.sprite = PlaceholderSprites.UnitSquare;
+                sr.color = GroundColor;
+                go.transform.localScale = new Vector3(size.x, size.y, 1f);
+                col.size = Vector2.one; // inherits the transform scale
+            }
 
             return go;
+        }
+
+        /// <summary>
+        /// Adds a "Visual" child holding the SpriteRenderer, kept separate from the
+        /// collider so custom art keeps its own proportions. Falls back to a tinted
+        /// placeholder square sized to the collider when no sprite is supplied.
+        /// </summary>
+        private static SpriteRenderer CreateVisual(GameObject parent, Sprite sprite, Color placeholderColor,
+                                                   Vector2 placeholderSize, Vector2 customScale, int sortingOrder)
+        {
+            var visual = new GameObject("Visual");
+            visual.transform.SetParent(parent.transform, false);
+
+            var sr = visual.AddComponent<SpriteRenderer>();
+            sr.sortingOrder = sortingOrder;
+
+            if (sprite != null)
+            {
+                sr.sprite = sprite;
+                visual.transform.localScale = new Vector3(customScale.x, customScale.y, 1f);
+            }
+            else
+            {
+                sr.sprite = PlaceholderSprites.UnitSquare;
+                sr.color = placeholderColor;
+                visual.transform.localScale = new Vector3(placeholderSize.x, placeholderSize.y, 1f);
+            }
+
+            return sr;
         }
 
         private GameObject BuildPlayer(int groundLayer)
@@ -111,12 +159,8 @@ namespace Emberpath.Core
             var go = new GameObject("Player");
             go.SetActive(false);
             go.transform.position = new Vector2(0f, -2.5f);
-
-            var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = PlaceholderSprites.UnitSquare;
-            sr.color = PlayerColor;
-            sr.sortingOrder = 10;
-            go.transform.localScale = new Vector3(0.8f, 1.4f, 1f);
+            // Root stays at scale 1 so the collider keeps a fixed size; the graphic
+            // is on a child and scaled independently.
 
             var rb = go.AddComponent<Rigidbody2D>();
             rb.gravityScale = 4f;
@@ -125,13 +169,15 @@ namespace Emberpath.Core
             rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
             var col = go.AddComponent<CapsuleCollider2D>();
-            col.size = new Vector2(0.9f, 1f);
+            col.size = new Vector2(0.7f, 1.4f);
             col.direction = CapsuleDirection2D.Vertical;
 
-            // Ground check point at the player's feet.
+            CreateVisual(go, playerSprite, PlayerColor, new Vector2(0.7f, 1.4f), playerVisualScale, 10);
+
+            // Ground check point just below the player's feet (collider half-height 0.7).
             var groundCheck = new GameObject("GroundCheck").transform;
             groundCheck.SetParent(go.transform, false);
-            groundCheck.localPosition = new Vector3(0f, -0.52f, 0f);
+            groundCheck.localPosition = new Vector3(0f, -0.75f, 0f);
 
             var controller = go.AddComponent<PlayerController>();
             controller.ConfigureReferences(groundCheck, 1 << groundLayer);
@@ -149,12 +195,6 @@ namespace Emberpath.Core
             var go = new GameObject("DummyEnemy");
             go.transform.position = position;
 
-            var sr = go.AddComponent<SpriteRenderer>();
-            sr.sprite = PlaceholderSprites.UnitSquare;
-            sr.color = EnemyColor;
-            sr.sortingOrder = 5;
-            go.transform.localScale = new Vector3(1f, 1.4f, 1f);
-
             // Kinematic: stays solid (blocks the player) but can't be pushed around
             // by walking into it. Knockback is applied via velocity in DummyEnemy.
             var rb = go.AddComponent<Rigidbody2D>();
@@ -162,7 +202,9 @@ namespace Emberpath.Core
             rb.freezeRotation = true;
 
             var col = go.AddComponent<BoxCollider2D>();
-            col.size = Vector2.one;
+            col.size = new Vector2(1f, 1.4f);
+
+            CreateVisual(go, enemySprite, EnemyColor, new Vector2(1f, 1.4f), enemyVisualScale, 5);
 
             go.AddComponent<DummyEnemy>();
             return go;
