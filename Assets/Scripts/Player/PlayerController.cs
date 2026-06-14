@@ -184,8 +184,11 @@ namespace Emberpath.Player
             // if the ground LayerMask is misconfigured (e.g. the Ground layer is missing).
             _isGrounded = false;
 
-            // Don't re-ground during the brief post-jump lock.
+            // Don't re-ground during the brief post-jump lock...
             if (_jumpLockTimer > 0f) return;
+            // ...or while moving upward: rising means we just jumped, so the foot
+            // check must not catch a platform edge/side and grant a second jump.
+            if (_rb.linearVelocity.y > 0.05f) return;
 
             Collider2D[] hits = Physics2D.OverlapCircleAll(groundCheck.position, groundCheckRadius, groundLayer);
             foreach (Collider2D c in hits)
