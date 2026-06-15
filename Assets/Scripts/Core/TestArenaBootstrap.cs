@@ -35,6 +35,10 @@ namespace Emberpath.Core
         [SerializeField] private Vector2 enemyVisualScale = Vector2.one;
         [Tooltip("Tiled across each platform. Set its Mesh Type to 'Full Rect' to avoid a warning.")]
         [SerializeField] private Sprite groundSprite;
+        [Tooltip("Drawn behind everything, centred on the camera.")]
+        [SerializeField] private Sprite backgroundSprite;
+        [Tooltip("1 = fit the camera height; raise to zoom the background in.")]
+        [SerializeField] private float backgroundScale = 1f;
 
         [Header("Player Animations (optional — drop frame sequences per state)")]
         [Tooltip("If any list has frames, the player plays animations driven by its state.")]
@@ -55,6 +59,7 @@ namespace Emberpath.Core
             }
 
             BuildCamera();
+            BuildBackground();
             BuildArena(groundLayer);
             GameObject player = BuildPlayer(groundLayer);
             BuildEnemy(new Vector2(4f, -1.0f));
@@ -83,6 +88,26 @@ namespace Emberpath.Core
             cam.backgroundColor = backgroundColor;
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.transform.position = new Vector3(0f, 1f, -10f);
+        }
+
+        private void BuildBackground()
+        {
+            if (backgroundSprite == null) return;
+
+            var go = new GameObject("Background");
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = backgroundSprite;
+            sr.sortingOrder = -100; // behind platforms (0), player (10), enemies (5)
+
+            Camera cam = Camera.main;
+            Vector3 camPos = cam != null ? cam.transform.position : new Vector3(0f, 1f, -10f);
+            go.transform.position = new Vector3(camPos.x, camPos.y, 0f);
+
+            // Scale so the background fills the camera height (x backgroundScale).
+            float viewHeight = (cam != null ? cam.orthographicSize : cameraOrthoSize) * 2f;
+            float spriteHeight = backgroundSprite.bounds.size.y;
+            float fit = spriteHeight > 0.0001f ? viewHeight / spriteHeight : 1f;
+            go.transform.localScale = Vector3.one * (fit * Mathf.Max(0.01f, backgroundScale));
         }
 
         private void BuildArena(int groundLayer)
