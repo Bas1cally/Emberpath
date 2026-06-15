@@ -88,6 +88,9 @@ namespace Emberpath.Core
             SpawnEnemy(EnemyController.Mode.Flyer, new Vector2(0f, 3.5f),
                        enemyAnimations, enemyVisualScale, 2, player.transform, playerHealth, groundLayer);
 
+            var hud = new GameObject("[DebugHud]").AddComponent<DebugHud>();
+            hud.Configure(playerHealth);
+
             Debug.Log("[Emberpath] Test arena ready. Controls: A/D or ←/→ move, " +
                       "Space/W jump, Shift/K dash, J/LMB attack.");
 

@@ -98,6 +98,12 @@ namespace Emberpath.Enemy
             _health.Died -= OnDied;
         }
 
+        /// <summary>Number of live enemies — foundation for "arena cleared" logic and HUD.</summary>
+        public static int AliveCount { get; private set; }
+
+        private void OnEnable() => AliveCount++;
+        private void OnDisable() => AliveCount = Mathf.Max(0, AliveCount - 1);
+
         private void Update()
         {
             _attackCdLeft -= Time.deltaTime;
