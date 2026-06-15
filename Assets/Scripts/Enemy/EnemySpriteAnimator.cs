@@ -8,10 +8,13 @@ namespace Emberpath.Enemy
     public class EnemyAnimationSet
     {
         public SpriteAnimation idle = new SpriteAnimation();
+        public SpriteAnimation move = new SpriteAnimation();
+        public SpriteAnimation attack = new SpriteAnimation { loop = false };
         public SpriteAnimation hurt = new SpriteAnimation { loop = false };
         public SpriteAnimation death = new SpriteAnimation { loop = false };
 
-        public bool AnyAssigned => idle.HasFrames || hurt.HasFrames || death.HasFrames;
+        public bool AnyAssigned =>
+            idle.HasFrames || move.HasFrames || attack.HasFrames || hurt.HasFrames || death.HasFrames;
     }
 
     /// <summary>
@@ -31,6 +34,7 @@ namespace Emberpath.Enemy
         private SpriteAnimation _oneShot;
         private float _oneShotTimeLeft;
         private bool _dead;
+        private bool _moving;
 
         public void Configure(EnemyAnimationSet set)
         {
@@ -38,6 +42,16 @@ namespace Emberpath.Enemy
         }
 
         private void Awake() => _sr = GetComponent<SpriteRenderer>();
+
+        /// <summary>Switches the looping base animation between idle and move.</summary>
+        public void SetMoving(bool moving) => _moving = moving;
+
+        public void PlayAttack()
+        {
+            if (_dead || !animations.attack.HasFrames) return;
+            _oneShot = animations.attack;
+            _oneShotTimeLeft = Mathf.Max(animations.attack.Duration, 0.05f);
+        }
 
         public void PlayHurt()
         {
@@ -83,6 +97,7 @@ namespace Emberpath.Enemy
                 _oneShot = null;
             }
 
+            if (_moving && animations.move.HasFrames) return animations.move;
             return animations.idle.HasFrames ? animations.idle : _current;
         }
 

@@ -26,12 +26,14 @@ namespace Emberpath.Core
         [Header("Player Tuning")]
         [Tooltip("Tweak these and press Play to feel the change; values are saved with the scene.")]
         [SerializeField] private PlayerTuning playerTuning = new PlayerTuning();
+        [Tooltip("Player hit points.")]
+        [SerializeField] private int playerMaxHealth = 5;
 
         [Header("Art (optional — drag your own sprites here; empty = placeholder squares)")]
         [SerializeField] private Sprite playerSprite;
         [Tooltip("Scale of the player graphic. Tweak so it matches the collider box.")]
         [SerializeField] private Vector2 playerVisualScale = Vector2.one;
-        [SerializeField] private Sprite enemySprite;
+        [Tooltip("Visual scale for the flying enemy graphic.")]
         [SerializeField] private Vector2 enemyVisualScale = Vector2.one;
         [Tooltip("Tiled across each platform. Set its Mesh Type to 'Full Rect' to avoid a warning.")]
         [SerializeField] private Sprite groundSprite;
@@ -44,9 +46,13 @@ namespace Emberpath.Core
         [Tooltip("If any list has frames, the player plays animations driven by its state.")]
         [SerializeField] private PlayerAnimationSet playerAnimations = new PlayerAnimationSet();
 
-        [Header("Enemy Animations (optional — drop frame sequences per state)")]
-        [Tooltip("If any list has frames, dummy enemies play idle/hurt/death animations.")]
+        [Header("Flyer enemy (e.g. ghost) — animations")]
+        [Tooltip("Idle/move/attack/hurt/death frames for the flying enemy. Look uses Enemy Visual Scale.")]
         [SerializeField] private EnemyAnimationSet enemyAnimations = new EnemyAnimationSet();
+
+        [Header("Ground enemy (e.g. hell-gato) — animations")]
+        [SerializeField] private EnemyAnimationSet groundEnemyAnimations = new EnemyAnimationSet();
+        [SerializeField] private Vector2 groundEnemyVisualScale = Vector2.one;
 
         private static readonly Color PlayerColor = new Color(0.95f, 0.55f, 0.20f); // ember orange
         private static readonly Color EnemyColor = new Color(0.65f, 0.20f, 0.25f);
@@ -65,9 +71,16 @@ namespace Emberpath.Core
             BuildCamera();
             BuildBackground();
             BuildArena(groundLayer);
+
             GameObject player = BuildPlayer(groundLayer);
-            BuildEnemy(new Vector2(4f, -1.0f));
-            BuildEnemy(new Vector2(-5f, 1.6f));
+            Health playerHealth = player.GetComponent<Health>();
+
+            SpawnEnemy(EnemyController.Mode.GroundMelee, new Vector2(6f, -2.8f),
+                       groundEnemyAnimations, groundEnemyVisualScale, 4, player.transform, playerHealth, groundLayer);
+            SpawnEnemy(EnemyController.Mode.GroundMelee, new Vector2(-7f, -2.8f),
+                       groundEnemyAnimations, groundEnemyVisualScale, 4, player.transform, playerHealth, groundLayer);
+            SpawnEnemy(EnemyController.Mode.Flyer, new Vector2(0f, 3.5f),
+                       enemyAnimations, enemyVisualScale, 2, player.transform, playerHealth, groundLayer);
 
             Debug.Log("[Emberpath] Test arena ready. Controls: A/D or ←/→ move, " +
                       "Space/W jump, Shift/K dash, J/LMB attack.");
@@ -231,39 +244,52 @@ namespace Emberpath.Core
                 animator.Configure(playerAnimations, controller, combat);
             }
 
+            var health = go.AddComponent<Health>();
+            health.Configure(playerMaxHealth);
+            go.AddComponent<PlayerHealthFeedback>();
+
             go.SetActive(true);
             return go;
         }
 
-        private GameObject BuildEnemy(Vector2 position)
+        private GameObject SpawnEnemy(EnemyController.Mode mode, Vector2 position, EnemyAnimationSet animSet,
+                                     Vector2 visualScale, int health, Transform target, Health targetHealth, int groundLayer)
         {
-            var go = new GameObject("DummyEnemy");
+            bool flyer = mode == EnemyController.Mode.Flyer;
+
+            // Build inactive so mode/health are configured before Awake runs.
+            var go = new GameObject(flyer ? "Enemy_Flyer" : "Enemy_Ground");
+            go.SetActive(false);
             go.transform.position = position;
 
-            // Kinematic: stays solid (blocks the player) but can't be pushed around
-            // by walking into it. Knockback is applied via velocity in DummyEnemy.
             var rb = go.AddComponent<Rigidbody2D>();
-            rb.bodyType = RigidbodyType2D.Kinematic;
             rb.freezeRotation = true;
+            rb.gravityScale = flyer ? 0f : 3f;
+            rb.collisionDetectionMode = CollisionDetectionMode2D.Continuous;
+            rb.interpolation = RigidbodyInterpolation2D.Interpolate;
 
-            var col = go.AddComponent<BoxCollider2D>();
-            col.size = new Vector2(1f, 1.4f);
+            var col = go.AddComponent<CapsuleCollider2D>();
+            col.size = new Vector2(0.9f, 1.4f);
+            col.direction = CapsuleDirection2D.Vertical;
 
-            bool customArt = enemySprite != null || enemyAnimations.AnyAssigned;
-            Sprite initialSprite = enemySprite != null
-                ? enemySprite
-                : (enemyAnimations.idle.HasFrames ? enemyAnimations.idle.frames[0] : null);
-            SpriteRenderer visualSr = CreateVisual(go, initialSprite, customArt, EnemyColor,
-                                                   new Vector2(1f, 1.4f), enemyVisualScale, 5);
+            bool customArt = animSet != null && animSet.AnyAssigned;
+            Sprite initial = customArt && animSet.idle.HasFrames ? animSet.idle.frames[0] : null;
+            SpriteRenderer visualSr = CreateVisual(go, initial, customArt, EnemyColor,
+                                                   new Vector2(0.9f, 1.4f), visualScale, 5);
 
-            if (enemyAnimations.AnyAssigned)
+            if (customArt)
             {
                 var animator = visualSr.gameObject.AddComponent<EnemySpriteAnimator>();
-                animator.Configure(enemyAnimations);
+                animator.Configure(animSet);
             }
 
-            // DummyEnemy finds the animator in its children (the Visual object).
-            go.AddComponent<DummyEnemy>();
+            var hp = go.AddComponent<Health>();
+            hp.Configure(health);
+
+            var ai = go.AddComponent<EnemyController>();
+            ai.Configure(mode, target, targetHealth, 1 << groundLayer);
+
+            go.SetActive(true);
             return go;
         }
     }
