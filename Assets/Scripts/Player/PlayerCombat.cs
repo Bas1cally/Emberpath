@@ -33,6 +33,7 @@ namespace Emberpath.Player
         public event System.Action Attacked;
 
         private PlayerController _controller;
+        private PlayerSpriteAnimator _animator;
         private float _cooldownLeft;
         private float _gizmoTimer;
 
@@ -42,6 +43,7 @@ namespace Emberpath.Player
         private void Awake()
         {
             _controller = GetComponent<PlayerController>();
+            _animator = GetComponentInChildren<PlayerSpriteAnimator>();
         }
 
         /// <summary>Overrides the combat feel values from a shared tuning object.</summary>
@@ -71,7 +73,10 @@ namespace Emberpath.Player
 
         private void Attack()
         {
-            _cooldownLeft = attackCooldown;
+            // Gate the next swing on the longer of the base cooldown and the attack
+            // animation, so spamming can't freeze the swing pose mid-animation.
+            float animLength = _animator != null ? _animator.AttackDuration : 0f;
+            _cooldownLeft = Mathf.Max(attackCooldown, animLength);
             _gizmoTimer = gizmoFlashTime;
             _hitThisSwing.Clear();
             Attacked?.Invoke();

@@ -34,6 +34,9 @@ namespace Emberpath.Player
         [Tooltip("Horizontal speed above which the run animation plays.")]
         [SerializeField] private float runSpeedThreshold = 0.6f;
 
+        /// <summary>Length of the attack animation in seconds (0 if none assigned).</summary>
+        public float AttackDuration => animations != null ? animations.attack.Duration : 0f;
+
         private SpriteRenderer _sr;
         private PlayerController _controller;
         private PlayerCombat _combat;
