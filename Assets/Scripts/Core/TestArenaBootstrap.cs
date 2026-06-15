@@ -1,5 +1,6 @@
 using Emberpath.Enemy;
 using Emberpath.Player;
+using Emberpath.UI;
 using UnityEngine;
 
 namespace Emberpath.Core
@@ -90,6 +91,10 @@ namespace Emberpath.Core
 
             var hud = new GameObject("[DebugHud]").AddComponent<DebugHud>();
             hud.Configure(playerHealth);
+
+            var pauseMenu = new GameObject("[PauseMenu]").AddComponent<PauseMenu>();
+            if (playerAnimations.idle.HasFrames)
+                pauseMenu.SetCharacterSprite(playerAnimations.idle.frames[0]);
 
             Debug.Log("[Emberpath] Test arena ready. Controls: A/D or ←/→ move, " +
                       "Space/W jump, Shift/K dash, J/LMB attack.");
