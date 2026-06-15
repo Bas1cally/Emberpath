@@ -18,10 +18,18 @@ namespace Emberpath.Core
         public int Current { get; private set; }
         public bool IsDead => Current <= 0;
 
+        /// <summary>
+        /// Externally forced invulnerability (e.g. the player while dashing). Hits
+        /// that arrive while this is true are rejected and raise <see cref="Blocked"/>.
+        /// </summary>
+        public bool Invulnerable { get; set; }
+
         /// <summary>Raised on a connecting hit (after health is reduced).</summary>
         public event Action<DamageInfo> Damaged;
         /// <summary>Raised once when health reaches zero.</summary>
         public event Action Died;
+        /// <summary>Raised when an incoming hit is rejected because <see cref="Invulnerable"/> was set (a dodge/parry).</summary>
+        public event Action<DamageInfo> Blocked;
 
         private Rigidbody2D _rb;
         private float _invulnerableLeft;
@@ -46,7 +54,16 @@ namespace Emberpath.Core
 
         public bool TakeDamage(in DamageInfo info)
         {
-            if (IsDead || _invulnerableLeft > 0f) return false;
+            if (IsDead) return false;
+
+            // Actively dodging (e.g. dashing): negate the hit and signal a parry.
+            if (Invulnerable)
+            {
+                Blocked?.Invoke(info);
+                return false;
+            }
+
+            if (_invulnerableLeft > 0f) return false;
 
             _invulnerableLeft = invulnerabilityTime;
             Current -= Mathf.Max(0, info.Amount);
