@@ -247,7 +247,8 @@ namespace Emberpath.Core
             var health = go.AddComponent<Health>();
             health.Configure(playerMaxHealth);
             go.AddComponent<PlayerHealthFeedback>();
-            go.AddComponent<PlayerParry>(); // dash = dodge/parry
+            go.AddComponent<PlayerParry>();   // dash = dodge/parry
+            go.AddComponent<SpellCaster>();   // perfect dash auto-casts the equipped spell
 
             go.SetActive(true);
             return go;
