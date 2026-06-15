@@ -16,6 +16,9 @@ Living checklist. Updated as we build. The game: 2D action-platformer roguelite
 - Art slots on the bootstrap: player/enemy/ground/background + per-state frame lists
 - **Spell foundation**: `SpellCaster` + `SpellProjectile`; perfect dash auto-casts
   (placeholder projectile), plus a manual cast key for testing
+- **Ability/unlock system** (`PlayerAbilities`): double jump / dash / spell as
+  unlockable abilities (double jump off by default); `Unlock()` for runtime grants
+- **Camera follow**: smooth follow with optional level bounds
 
 ## 🎮 Needs your test (when you're home)
 - Assign remaining hero frames (Run/Jump/Attack/Hurt) and ground-enemy (hell-gato)
@@ -27,9 +30,8 @@ Living checklist. Updated as we build. The game: 2D action-platformer roguelite
 ## 🔨 Next — foundation I can build without your test
 - [ ] Spells: make them **data-driven & equippable** (projectile / AoE burst / buff),
       an equip slot, cooldown/resource; perfect-dash casts the *equipped* one
-- [ ] **Ability/unlock system** (roguelite): unlock double jump, extra dash, etc.,
-      applied to `PlayerController`
-- [ ] **GameManager / run flow**: start, win/lose, restart, stage transitions
+- [ ] **GameManager / run flow**: start, win/lose, restart, stage transitions; enemy
+      registry → "arena cleared" detection
 - [ ] More enemy types for challenge: **ranged shooter**, heavy/armored, fast swarmer
 - [ ] Enemy awareness polish: line-of-sight, alert/search/give-up states
 - [ ] Lightweight **UI**: health hearts, spell icon + cooldown

@@ -29,6 +29,11 @@ namespace Emberpath.Core
         [Tooltip("Player hit points.")]
         [SerializeField] private int playerMaxHealth = 5;
 
+        [Header("Abilities (roguelite unlocks)")]
+        [SerializeField] private bool startWithDoubleJump;
+        [SerializeField] private bool startWithDash = true;
+        [SerializeField] private bool startWithSpell = true;
+
         [Header("Art (optional — drag your own sprites here; empty = placeholder squares)")]
         [SerializeField] private Sprite playerSprite;
         [Tooltip("Scale of the player graphic. Tweak so it matches the collider box.")]
@@ -74,6 +79,7 @@ namespace Emberpath.Core
 
             GameObject player = BuildPlayer(groundLayer);
             Health playerHealth = player.GetComponent<Health>();
+            SetupCameraFollow(player.transform);
 
             SpawnEnemy(EnemyController.Mode.GroundMelee, new Vector2(6f, -2.8f),
                        groundEnemyAnimations, groundEnemyVisualScale, 4, player.transform, playerHealth, groundLayer);
@@ -105,6 +111,15 @@ namespace Emberpath.Core
             cam.backgroundColor = backgroundColor;
             cam.clearFlags = CameraClearFlags.SolidColor;
             cam.transform.position = new Vector3(0f, 1f, -10f);
+        }
+
+        private void SetupCameraFollow(Transform target)
+        {
+            Camera cam = Camera.main;
+            if (cam == null) return;
+            var follow = cam.GetComponent<CameraFollow>();
+            if (follow == null) follow = cam.gameObject.AddComponent<CameraFollow>();
+            follow.SetTarget(target);
         }
 
         private void BuildBackground()
@@ -249,6 +264,9 @@ namespace Emberpath.Core
             go.AddComponent<PlayerHealthFeedback>();
             go.AddComponent<PlayerParry>();   // dash = dodge/parry
             go.AddComponent<SpellCaster>();   // perfect dash auto-casts the equipped spell
+
+            var abilities = go.AddComponent<PlayerAbilities>();
+            abilities.Configure(startWithDoubleJump, startWithDash, startWithSpell);
 
             go.SetActive(true);
             return go;

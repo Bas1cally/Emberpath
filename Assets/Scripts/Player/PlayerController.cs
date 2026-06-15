@@ -54,6 +54,12 @@ namespace Emberpath.Player
         /// <summary>Current rigidbody velocity (zero before Awake). For animation/state code.</summary>
         public Vector2 Velocity => _rb != null ? _rb.linearVelocity : Vector2.zero;
 
+        /// <summary>Gate for the dash ability (e.g. a roguelite unlock).</summary>
+        public bool DashEnabled { get; set; } = true;
+
+        /// <summary>Sets the number of mid-air jumps (0 = single jump, 1 = double jump …).</summary>
+        public void SetExtraJumps(int count) => extraJumps = Mathf.Max(0, count);
+
         /// <summary>
         /// Wires up references that are normally assigned in the inspector.
         /// Used by <c>TestArenaBootstrap</c> when it builds the player at runtime.
@@ -251,7 +257,7 @@ namespace Emberpath.Player
 
         private void TryStartDash()
         {
-            if (IsDashing || _dashCooldownLeft > 0f) return;
+            if (!DashEnabled || IsDashing || _dashCooldownLeft > 0f) return;
 
             IsDashing = true;
             _dashTimeLeft = dashDuration;
