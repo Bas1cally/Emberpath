@@ -24,8 +24,15 @@ namespace Emberpath.Core
             if (other.GetComponentInParent<PlayerController>() == null) return;
 
             _used = true;
-            if (RunManager.Instance != null) RunManager.Instance.CompleteCurrentLevel();
-            else Debug.Log("[Emberpath] Level goal reached (no RunManager present).");
+            if (RunManager.Instance != null && RunManager.Instance.RunActive)
+            {
+                RunManager.Instance.CompleteCurrentLevel();
+            }
+            else
+            {
+                // Free play-testing the level directly: don't yank to the map.
+                Debug.Log("[Emberpath] Level goal reached (free test).");
+            }
         }
     }
 }

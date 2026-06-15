@@ -78,9 +78,9 @@ namespace Emberpath.Player
 
             yield return new WaitForSeconds(respawnDelay);
 
-            // Roguelite: death resets the level to the last checkpoint (reloads the
-            // scene). Falls back to an in-place respawn if there is no run manager.
-            if (RunManager.Instance != null)
+            // Roguelite: during a real run (entered from the map) death resets to the
+            // last checkpoint. When play-testing a level directly, just respawn in place.
+            if (RunManager.Instance != null && RunManager.Instance.RunActive)
             {
                 RunManager.Instance.PlayerDied();
                 yield break;

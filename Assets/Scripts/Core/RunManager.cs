@@ -36,6 +36,12 @@ namespace Emberpath.Core
         public int LevelCount => Mathf.Max(1, levels.Count);
         public bool IsBoss(int index) => HasLevel(index) && levels[index].isBoss;
 
+        /// <summary>
+        /// True only while playing a level launched from the world map. When false
+        /// (e.g. play-testing a level scene directly) death/goal don't jump to the map.
+        /// </summary>
+        public bool RunActive { get; private set; }
+
         public event Action<int> LevelCompleted;
         public event Action<int> RunReset;
 
@@ -64,6 +70,7 @@ namespace Emberpath.Core
         public void EnterLevel(int index)
         {
             CurrentLevel = Mathf.Max(0, index);
+            RunActive = true;
             Debug.Log($"[Emberpath] Entering level {CurrentLevel}.");
             LoadScene(LevelSceneName(CurrentLevel));
         }
@@ -93,7 +100,11 @@ namespace Emberpath.Core
             ReturnToMap();
         }
 
-        public void ReturnToMap() => LoadScene(worldMapScene);
+        public void ReturnToMap()
+        {
+            RunActive = false;
+            LoadScene(worldMapScene);
+        }
         public void RestartLevel() => LoadScene(LevelSceneName(CurrentLevel));
 
         private string LevelSceneName(int index)
