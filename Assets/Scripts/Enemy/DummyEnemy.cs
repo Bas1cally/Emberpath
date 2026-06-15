@@ -29,6 +29,7 @@ namespace Emberpath.Enemy
 
         private Rigidbody2D _rb;
         private SpriteRenderer _sprite;
+        private EnemySpriteAnimator _animator;
         private Color _baseColor;
         private int _health;
         private float _invulnerableLeft;
@@ -40,6 +41,7 @@ namespace Emberpath.Enemy
             // The visual may live on a child object (so custom art isn't distorted
             // by the collider), so search children too.
             _sprite = GetComponentInChildren<SpriteRenderer>();
+            _animator = GetComponentInChildren<EnemySpriteAnimator>();
             if (_sprite != null) _baseColor = _sprite.color;
             _health = maxHealth;
         }
@@ -68,6 +70,7 @@ namespace Emberpath.Enemy
 
             ApplyKnockback(info);
             Flash();
+            if (_animator != null) _animator.PlayHurt();
 
             if (_health <= 0)
             {
@@ -110,6 +113,7 @@ namespace Emberpath.Enemy
             if (_sprite != null)
                 _sprite.color = new Color(_baseColor.r, _baseColor.g, _baseColor.b, 0.25f);
             _rb.linearVelocity = Vector2.zero;
+            if (_animator != null) _animator.PlayDeath();
 
             if (respawnDelay > 0f)
             {
@@ -123,6 +127,7 @@ namespace Emberpath.Enemy
             _health = maxHealth;
             if (_flashRoutine != null) { StopCoroutine(_flashRoutine); _flashRoutine = null; }
             if (_sprite != null) _sprite.color = _baseColor;
+            if (_animator != null) _animator.ResetToIdle();
         }
     }
 }

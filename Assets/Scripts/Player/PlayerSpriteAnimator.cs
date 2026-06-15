@@ -1,21 +1,9 @@
 using System;
+using Emberpath.Core;
 using UnityEngine;
 
 namespace Emberpath.Player
 {
-    /// <summary>A list of frames that make up one looping or one-shot animation.</summary>
-    [Serializable]
-    public class SpriteAnimation
-    {
-        public Sprite[] frames;
-        [Tooltip("Playback speed in frames per second.")]
-        public float fps = 10f;
-        public bool loop = true;
-
-        public bool HasFrames => frames != null && frames.Length > 0;
-        public float Duration => HasFrames && fps > 0f ? frames.Length / fps : 0f;
-    }
-
     /// <summary>All player animation states. Drop your frame sequences into each.</summary>
     [Serializable]
     public class PlayerAnimationSet

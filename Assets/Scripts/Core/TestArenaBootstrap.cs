@@ -44,6 +44,10 @@ namespace Emberpath.Core
         [Tooltip("If any list has frames, the player plays animations driven by its state.")]
         [SerializeField] private PlayerAnimationSet playerAnimations = new PlayerAnimationSet();
 
+        [Header("Enemy Animations (optional — drop frame sequences per state)")]
+        [Tooltip("If any list has frames, dummy enemies play idle/hurt/death animations.")]
+        [SerializeField] private EnemyAnimationSet enemyAnimations = new EnemyAnimationSet();
+
         private static readonly Color PlayerColor = new Color(0.95f, 0.55f, 0.20f); // ember orange
         private static readonly Color EnemyColor = new Color(0.65f, 0.20f, 0.25f);
         private static readonly Color GroundColor = new Color(0.20f, 0.22f, 0.28f);
@@ -245,8 +249,20 @@ namespace Emberpath.Core
             var col = go.AddComponent<BoxCollider2D>();
             col.size = new Vector2(1f, 1.4f);
 
-            CreateVisual(go, enemySprite, enemySprite != null, EnemyColor, new Vector2(1f, 1.4f), enemyVisualScale, 5);
+            bool customArt = enemySprite != null || enemyAnimations.AnyAssigned;
+            Sprite initialSprite = enemySprite != null
+                ? enemySprite
+                : (enemyAnimations.idle.HasFrames ? enemyAnimations.idle.frames[0] : null);
+            SpriteRenderer visualSr = CreateVisual(go, initialSprite, customArt, EnemyColor,
+                                                   new Vector2(1f, 1.4f), enemyVisualScale, 5);
 
+            if (enemyAnimations.AnyAssigned)
+            {
+                var animator = visualSr.gameObject.AddComponent<EnemySpriteAnimator>();
+                animator.Configure(enemyAnimations);
+            }
+
+            // DummyEnemy finds the animator in its children (the Visual object).
             go.AddComponent<DummyEnemy>();
             return go;
         }
