@@ -84,10 +84,12 @@ namespace Emberpath.Core
 
             SpawnEnemy(EnemyController.Mode.GroundMelee, new Vector2(6f, -2.8f),
                        groundEnemyAnimations, groundEnemyVisualScale, 4, player.transform, playerHealth, groundLayer);
-            SpawnEnemy(EnemyController.Mode.GroundMelee, new Vector2(-7f, -2.8f),
-                       groundEnemyAnimations, groundEnemyVisualScale, 4, player.transform, playerHealth, groundLayer);
+            SpawnEnemy(EnemyController.Mode.Ranged, new Vector2(-7f, -2.8f),
+                       groundEnemyAnimations, groundEnemyVisualScale, 3, player.transform, playerHealth, groundLayer);
             SpawnEnemy(EnemyController.Mode.Flyer, new Vector2(0f, 3.5f),
                        enemyAnimations, enemyVisualScale, 2, player.transform, playerHealth, groundLayer);
+
+            new GameObject("[GameManager]").AddComponent<GameManager>();
 
             var hud = new GameObject("[DebugHud]").AddComponent<DebugHud>();
             hud.Configure(playerHealth);

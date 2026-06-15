@@ -1,4 +1,5 @@
 using Emberpath.Core;
+using Emberpath.Spells;
 using UnityEngine;
 
 namespace Emberpath.Enemy
@@ -15,7 +16,7 @@ namespace Emberpath.Enemy
     [RequireComponent(typeof(Health))]
     public class EnemyController : MonoBehaviour
     {
-        public enum Mode { GroundMelee, Flyer }
+        public enum Mode { GroundMelee, Flyer, Ranged }
 
         [SerializeField] private Mode mode = Mode.GroundMelee;
         [SerializeField] private bool spriteDefaultFacesRight = true;
@@ -34,6 +35,14 @@ namespace Emberpath.Enemy
         [SerializeField] private float attackKnockback = 11f;
         [SerializeField] private float attackWindup = 0.28f;
         [SerializeField] private float attackCooldown = 1.3f;
+
+        [Header("Ranged attack")]
+        [SerializeField] private float shootRange = 7f;
+        [SerializeField] private float shootCooldown = 1.6f;
+        [SerializeField] private int projectileDamage = 1;
+        [SerializeField] private float projectileSpeed = 9f;
+        [SerializeField] private float projectileKnockback = 6f;
+        [SerializeField] private float projectileLifetime = 2.5f;
 
         [Header("Contact")]
         [SerializeField] private int contactDamage = 1;
@@ -63,6 +72,7 @@ namespace Emberpath.Enemy
         private int _facing = -1;
         private float _attackCdLeft;
         private float _contactCdLeft;
+        private float _shootCdLeft;
         private float _hurtLeft;
         private float _windupLeft;
         private bool _winding;
@@ -108,6 +118,7 @@ namespace Emberpath.Enemy
         {
             _attackCdLeft -= Time.deltaTime;
             _contactCdLeft -= Time.deltaTime;
+            _shootCdLeft -= Time.deltaTime;
             if (_hurtLeft > 0f) _hurtLeft -= Time.deltaTime;
         }
 
@@ -124,7 +135,61 @@ namespace Emberpath.Enemy
             if (_winding) { TickWindup(); return; }
 
             if (mode == Mode.GroundMelee) GroundBehaviour(detected, dx, dy, dirToPlayer);
+            else if (mode == Mode.Ranged) RangedBehaviour(detected, dx, dy, dirToPlayer);
             else FlyerBehaviour(detected, dirToPlayer);
+        }
+
+        // --- Ranged (ground shooter) ---------------------------------------
+
+        private void RangedBehaviour(bool detected, float dx, float dy, int dirToPlayer)
+        {
+            bool inSight = detected && Mathf.Abs(dy) <= verticalTolerance;
+
+            if (inSight && Mathf.Abs(dx) <= shootRange)
+            {
+                FaceTowards(dirToPlayer);
+                Brake();
+                SetMoving(false);
+                if (_shootCdLeft <= 0f)
+                {
+                    Shoot();
+                    _shootCdLeft = shootCooldown;
+                }
+                return;
+            }
+
+            int moveDir = inSight ? dirToPlayer : _facing;
+            float speed = inSight ? chaseSpeed : patrolSpeed;
+            FaceTowards(moveDir);
+
+            if (IsBlockedAhead())
+            {
+                if (inSight) { Brake(); SetMoving(false); }
+                else { _facing = -_facing; FaceTowards(_facing); }
+                return;
+            }
+
+            _rb.linearVelocity = new Vector2(moveDir * speed, _rb.linearVelocity.y);
+            SetMoving(true);
+        }
+
+        private void Shoot()
+        {
+            if (_anim != null) _anim.PlayAttack();
+
+            Vector2 dir = new Vector2(_facing, 0f);
+            var go = new GameObject("Enemy_Projectile");
+            go.transform.position = _rb.position + dir * 0.6f + Vector2.up * 0.1f;
+            go.transform.localScale = new Vector3(0.4f, 0.4f, 1f);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = PlaceholderSprites.UnitSquare;
+            sr.color = new Color(1f, 0.45f, 0.3f);
+            sr.sortingOrder = 14;
+
+            var proj = go.AddComponent<SpellProjectile>();
+            proj.Launch(dir, projectileSpeed, projectileDamage, projectileKnockback,
+                        projectileLifetime, ~0, gameObject, _targetHealth);
         }
 
         // --- Ground melee ---------------------------------------------------

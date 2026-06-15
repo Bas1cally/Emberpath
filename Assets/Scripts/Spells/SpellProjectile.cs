@@ -17,10 +17,11 @@ namespace Emberpath.Spells
         private float _life;
         private LayerMask _hitMask;
         private GameObject _source;
+        private Health _onlyDamage;
         private bool _launched;
 
         public void Launch(Vector2 direction, float speed, int damage, float knockback,
-                           float lifetime, LayerMask hitMask, GameObject source)
+                           float lifetime, LayerMask hitMask, GameObject source, Health onlyDamage = null)
         {
             _direction = direction.sqrMagnitude > 0.0001f ? direction.normalized : Vector2.right;
             _speed = speed;
@@ -29,6 +30,7 @@ namespace Emberpath.Spells
             _life = lifetime;
             _hitMask = hitMask;
             _source = source;
+            _onlyDamage = onlyDamage; // when set, only this target is damaged (no friendly fire)
             _launched = true;
         }
 
@@ -71,6 +73,9 @@ namespace Emberpath.Spells
             {
                 return false;
             }
+
+            // Restricted projectiles (e.g. enemy shots) only damage their intended target.
+            if (_onlyDamage != null && !ReferenceEquals(target, _onlyDamage)) return false;
 
             int dir = _direction.x >= 0f ? 1 : -1;
             return target.TakeDamage(new DamageInfo(_damage, new Vector2(dir, 0.1f), _knockback, _source));
