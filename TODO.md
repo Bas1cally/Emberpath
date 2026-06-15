@@ -22,7 +22,9 @@ Living checklist. Updated as we build. The game: 2D action-platformer roguelite
 - **Debug HUD** (IMGUI): player HP, live enemy count, controls
 - **Pause/equipment menu** (uGUI, placeholder): Esc to open & pause; framed panel —
   weapon/armor/2 rings (left), spells (right), idle character (centre), resume
-- **GameManager / run flow**: arena-cleared detection (last enemy dies) + R restart
+- **Run structure** (Super Mario World style): `RunManager` advances level-by-level;
+  **death resets the level to the last checkpoint** (roguelite); checkpoints are set
+  after boss stages. `LevelGoal` — reaching the level exit completes it (Mario-style)
 - **Enemy variety**: ground melee + **ranged shooter** + flying chaser
 - **Equippable, data-driven spells**: projectile + AoE burst; cycle to select (Q),
   cast on perfect dash or manually (L)
@@ -46,7 +48,10 @@ Living checklist. Updated as we build. The game: 2D action-platformer roguelite
 - [ ] Save/persistence for unlocks
 
 ## 🗺️ Later — needs your decisions / art
-- [ ] Overworld map (Mario-style): node graph, path navigation, node → loads arena
+- [ ] **World map scene** (Super Mario World): level nodes + paths, player walks
+      node→node, entering a node loads that level. Configure `RunManager.levels`
+      (scene names, which are boss stages). Needs scenes built in Unity.
+- [ ] **Boss stages** + boss enemy scaffold; checkpoint granted on boss clear
 - [ ] Spell mechanic details: equipped spell list, costs, perfect-dash vs manual cast
 - [ ] Roguelite structure: stage selection, rewards, meta-progression
 - [ ] iOS: touch controls + build pipeline (Mac/Xcode/signing)

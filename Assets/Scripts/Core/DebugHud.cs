@@ -33,15 +33,16 @@ namespace Emberpath.Core
             GUI.color = Color.white;
             GUI.Label(new Rect(x, y, 400, 24), $"Enemies: {EnemyController.AliveCount}", _style);
             y += 22;
-            GUI.Label(new Rect(x, y, 800, 24),
-                "Move A/D · Jump Space · Dash Shift (dodge/parry) · Attack J · Spell L · Pause Esc · Restart R", _style);
-            y += 22;
 
-            if (GameManager.Instance != null && GameManager.Instance.State == GameManager.RunState.Cleared)
+            if (RunManager.Instance != null)
             {
-                GUI.color = new Color(0.5f, 1f, 0.5f);
-                GUI.Label(new Rect(x, y, 500, 30), "ARENA CLEARED — press R", _style);
+                GUI.Label(new Rect(x, y, 400, 24),
+                    $"Level {RunManager.Instance.CurrentLevel}  (checkpoint {RunManager.Instance.CheckpointLevel})", _style);
+                y += 22;
             }
+
+            GUI.Label(new Rect(x, y, 900, 24),
+                "Move A/D · Jump Space · Dash Shift (dodge/parry) · Attack J · Spell L · Cycle Q · Pause Esc · Restart R · Goal → right edge", _style);
         }
     }
 }

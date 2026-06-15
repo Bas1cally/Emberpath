@@ -89,7 +89,10 @@ namespace Emberpath.Core
             SpawnEnemy(EnemyController.Mode.Flyer, new Vector2(0f, 3.5f),
                        enemyAnimations, enemyVisualScale, 2, player.transform, playerHealth, groundLayer);
 
-            new GameObject("[GameManager]").AddComponent<GameManager>();
+            if (RunManager.Instance == null)
+                new GameObject("[RunManager]").AddComponent<RunManager>();
+
+            BuildLevelGoal(new Vector2(12.5f, -2.6f));
 
             var hud = new GameObject("[DebugHud]").AddComponent<DebugHud>();
             hud.Configure(playerHealth);
@@ -130,6 +133,24 @@ namespace Emberpath.Core
             var follow = cam.GetComponent<CameraFollow>();
             if (follow == null) follow = cam.gameObject.AddComponent<CameraFollow>();
             follow.SetTarget(target);
+        }
+
+        private void BuildLevelGoal(Vector2 position)
+        {
+            var go = new GameObject("LevelGoal");
+            go.transform.position = position;
+            go.transform.localScale = new Vector3(1f, 3f, 1f);
+
+            var sr = go.AddComponent<SpriteRenderer>();
+            sr.sprite = PlaceholderSprites.UnitSquare;
+            sr.color = new Color(0.3f, 0.9f, 0.4f, 0.5f); // placeholder exit marker
+            sr.sortingOrder = 1;
+
+            var col = go.AddComponent<BoxCollider2D>();
+            col.isTrigger = true;
+            col.size = Vector2.one;
+
+            go.AddComponent<LevelGoal>();
         }
 
         private void BuildBackground()
